@@ -12,6 +12,11 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 
+import Header from "./src/components/Header";
+import MenuButton from "./src/components/MenuButton";
+import TopNav from "./src/components/TopNav";
+
+
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -24,22 +29,22 @@ function App() {
 }
 
 function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <TopNav />
+      <Header />
+      <View className="p-4">
+
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  menu: { flex: 1, justifyContent: "center" },
 });
 
 export default App;
