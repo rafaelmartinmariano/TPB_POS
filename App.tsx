@@ -11,7 +11,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 //functions
-import { useDeviceRegistration } from './src/hooks/useDeviceRegistration';
+import { useDeviceRegistration, checkDateSync } from './src/hooks/useDeviceRegistration';
 
 //Components
 import CategoriesWithProducts from "./src/components/CategoriesWithProducts";
@@ -19,7 +19,8 @@ import TopNav from "./src/components/TopNav";
 import RegistrationScreen from './src/screens/RegistrationScreen';
 
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Text } from 'react-native-paper';
 
 type RootStackParamList = {
   Home: undefined;
@@ -28,33 +29,54 @@ type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-function App() {
+export default function App() {
   const isDarkMode = useColorScheme() === 'dark';
+  const [isDateSync, setIsDateSync] = useState<boolean | null>(null);
+
+  //check if the date is sync GMT+8
+  useEffect(() => {
+    const check = async () => {
+      const dateSync = await checkDateSync();
+      setIsDateSync(dateSync);
+      console.log("✅ Date Sync:", dateSync);
+    };
+    check();
+  }, []);
 
   //check if device is registered
   const { isRegistered } = useDeviceRegistration();
 
+  // Still checking → show loading spinner
+  if (isDateSync == false) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+        <Text>Time not sync.</Text>
+        <Text>Kindly check the device time or contact your administrator.</Text>
+      </View>
+    );
+  }
 
-  console.log("isRegistered:", isRegistered);
+  //console.log("isRegistered:", isRegistered);
   //if (!isRegistered) return null;
 
   return (
-    
+
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <NavigationContainer>
         <Stack.Navigator initialRouteName={isRegistered ? "Home" : "Registration"}>
           <Stack.Screen name="Home"
-          component={AppContent}
-          options={{
-            headerTitle: () => <TopNav />, // render your component inline
-          }}
+            component={AppContent}
+            options={{
+              headerTitle: () => <TopNav />, // render your component inline
+            }}
           />
           <Stack.Screen name="Registration" component={RegistrationScreen} options={{ title: 'Device Registration' }} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
-    
+
   );
 }
 
@@ -74,5 +96,3 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   menu: { flex: 1, justifyContent: "center" },
 });
-
-export default App;

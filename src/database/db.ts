@@ -20,6 +20,19 @@ export const createDeviceTable = async (db: SQLiteDatabase) => {
   await db.executeSql(query);
 };
 
+export const createDateSyncTable = async (db: any) => {
+  await db.executeSql(`
+    CREATE TABLE IF NOT EXISTS last_date_sync_check (
+      id INTEGER PRIMARY KEY NOT NULL,
+      next_check_date TEXT
+    );
+  `);
+};
+
+
+
+
+
 export const getRegisteredDevice = async (db: SQLiteDatabase) => {
   const results = await db.executeSql(`SELECT * FROM devices LIMIT 1;`);
   if (results[0].rows.length > 0) {

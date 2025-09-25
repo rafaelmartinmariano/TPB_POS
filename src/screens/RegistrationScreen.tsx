@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { registerDeviceApi, syncProductsApi } from '../api/device';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
-import {registerDevice as saveDeviceToDB, getAllDevices, initDatabase, closeDBConnection } from '../database/db';
+import { registerDevice as saveDeviceToDB, getAllDevices, initDatabase, closeDBConnection } from '../database/db';
 import { SQLiteDatabase } from 'react-native-sqlite-storage';
 import { useDeviceRegistration } from '../hooks/useDeviceRegistration';
 
@@ -24,9 +24,11 @@ export default function RegistrationScreen() {
     const navigation = useNavigation<NavigationProp>();
 
     //check if the device is already registered and not yet expired
-    const isRegistered = useDeviceRegistration();
+    const { isRegistered } = useDeviceRegistration();
 
     const handleRegisterDevice = async () => {
+        console.log("inside handle reg");
+
         if (!token.trim()) {
             Alert.alert('Error', 'Please enter token.');
             return;
@@ -36,10 +38,13 @@ export default function RegistrationScreen() {
 
         let db: SQLiteDatabase | null = null;
         try {
+            console.log("inside try");
             const imei = await DeviceInfo.getUniqueId();
 
             // Register in Laravel API
-            await registerDeviceApi(imei, token);
+            const device = await registerDeviceApi(imei, token);
+
+            console.log(device);
 
             Alert.alert('Success', 'Device registered successfully');
 
@@ -60,8 +65,10 @@ export default function RegistrationScreen() {
             navigation.navigate('Home');
 
         } catch (error: any) {
+            console.log("inside catch");
             Alert.alert('Error', error.message || 'Something went wrong.');
         } finally {
+            console.log("inside finally");
             console.log(db);
             if (db) {
                 await closeDBConnection(db); // 🔑 close here
@@ -88,41 +95,44 @@ export default function RegistrationScreen() {
         }
     };
 
+
+    console.log("RS.TSX isRegistered: ", isRegistered);
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>{isRegistered ? 'Device already registered' : 'Device Registration'}</Text>
-            
+
             {
-            isRegistered ? 
-                ""
-                : 
-                (
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Enter token"
-                        value={token}
-                        onChangeText={setToken}
-                        autoCapitalize="none"
-                    />
-                )
+                isRegistered ?
+                    ""
+                    :
+                    (
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Enter token"
+                            value={token}
+                            onChangeText={setToken}
+                            autoCapitalize="none"
+                        />
+                    )
             }
 
             {
-            isRegistered ? 
-                ""
-                : 
-                (
-                    <Button
-                        title={loading ? 'Registering...' : 'Register Now'}
-                        onPress={handleRegisterDevice}
-                        disabled={loading}
-                    />
-                )
+                isRegistered ?
+                    ""
+                    :
+                    (
+                        <Button
+                            title={loading ? 'Registering...' : 'Register Now'}
+                            onPress={handleRegisterDevice}
+                            disabled={loading}
+                        />
+                    )
             }
-            
 
-            
-            
+
+
+
 
             {deviceRegistered && (
                 <View style={{ marginTop: 20 }}>

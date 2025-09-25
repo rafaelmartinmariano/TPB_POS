@@ -19,7 +19,7 @@ const CategoriesWithProducts = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const categories_url = "http://101.0.0.50/api/categories";
+  const categories_url = "http://192.168.0.17/api/categories";
 
   // Fetch categories
   useEffect(() => {
@@ -46,11 +46,11 @@ const CategoriesWithProducts = () => {
   const fetchProducts = async (categoryId: number) => {
     setLoading(true);
     try {
-        const res = await fetch(
-            `http://101.0.0.50/api/categories/${categoryId}/products`
-        );
-        const json = await res.json();
-        setProducts(json.data);
+      const res = await fetch(
+        categories_url + `/${categoryId}/products`
+      );
+      const json = await res.json();
+      setProducts(json.data);
     } catch (err) {
       console.error("Error fetching products:", err);
     } finally {
@@ -73,14 +73,12 @@ const CategoriesWithProducts = () => {
               setSelectedCategory(item.id);
               fetchProducts(item.id);
             }}
-            className={`px-4 py-2 mr-2 rounded-full ${
-              selectedCategory === item.id ? "bg-blue-500" : "bg-gray-200"
-            }`}
+            className={`px-4 py-2 mr-2 rounded-full ${selectedCategory === item.id ? "bg-blue-500" : "bg-gray-200"
+              }`}
           >
             <Text
-              className={`${
-                selectedCategory === item.id ? "text-white" : "text-gray-800"
-              } font-medium`}
+              className={`${selectedCategory === item.id ? "text-white" : "text-gray-800"
+                } font-medium`}
             >
               {item.name}
             </Text>

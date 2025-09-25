@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 
-const API_URL = 'http://101.0.0.50/api'; // Change this to your Laravel API base URL
+const API_URL = 'http://192.168.0.17/api'; // Change this to your Laravel API base URL
 
 // Types
 interface RegisterResponse {
@@ -31,8 +31,6 @@ export const registerDeviceApi = async (imei: string, token: string): Promise<nu
             token,
         });
 
-        
-
         if (response.data.status === 'success' && response.data.device_id) {
             return response.data.device_id;
         } else {
@@ -61,13 +59,13 @@ export const syncProductsApi = async (deviceId: number): Promise<Product[]> => {
 };
 
 
-export const validateTokenApi = async (imei: string,token: string): Promise<boolean> => {
-  try {
-    console.log("IMEI: "+imei,"token: "+token);
-    const response = await axios.post(`${API_URL}/devices/validate`, { imei,token });
-    return response.data.valid; // true or false from Laravel
-  } catch (error) {
-    console.error("❌ Token validation failed:", error);
-    return false;
-  }
+export const validateTokenApi = async (imei: string, token: string): Promise<boolean> => {
+    try {
+        console.log("IMEI: " + imei, "token: " + token);
+        const response = await axios.post(`${API_URL}/devices/validate`, { imei, token });
+        return response.data.valid; // true or false from Laravel
+    } catch (error) {
+        console.error("❌ Token validation failed:", error);
+        return false;
+    }
 };
