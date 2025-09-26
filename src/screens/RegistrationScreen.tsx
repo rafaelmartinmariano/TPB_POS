@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,6 +8,8 @@ import { useNavigation } from '@react-navigation/native';
 import { registerDevice as saveDeviceToDB, getAllDevices, initDatabase, closeDBConnection } from '../database/db';
 import { SQLiteDatabase } from 'react-native-sqlite-storage';
 import { useDeviceRegistration } from '../hooks/useDeviceRegistration';
+import RNRestart from 'react-native-restart';
+import { ActivityIndicator } from 'react-native-paper';
 
 type RootStackParamList = {
     Registration: undefined;
@@ -19,7 +21,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Registratio
 export default function RegistrationScreen() {
     const [token, setToken] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
-    const [deviceRegistered, setDeviceRegistered] = useState<boolean>(false);
+    const [deviceRegistered, setDeviceRegistered] = useState<boolean | null>(null);
 
     const navigation = useNavigation<NavigationProp>();
 
@@ -27,8 +29,6 @@ export default function RegistrationScreen() {
     const { isRegistered } = useDeviceRegistration();
 
     const handleRegisterDevice = async () => {
-        console.log("inside handle reg");
-
         if (!token.trim()) {
             Alert.alert('Error', 'Please enter token.');
             return;
@@ -38,7 +38,6 @@ export default function RegistrationScreen() {
 
         let db: SQLiteDatabase | null = null;
         try {
-            console.log("inside try");
             const imei = await DeviceInfo.getUniqueId();
 
             // Register in Laravel API
@@ -54,21 +53,14 @@ export default function RegistrationScreen() {
             console.log("Saving to SQLite:", { imei, token });
             await saveDeviceToDB(db, imei, token);
 
-            // ✅ Fetch and check
-            const devices = await getAllDevices(db);
-            console.log("Local devices:", devices);
-            Alert.alert("Local DB", JSON.stringify(devices));
-
             setDeviceRegistered(true);
 
-            // Optionally navigate to Products
-            navigation.navigate('Home');
-
+            // Restart the app
+            RNRestart.Restart();
         } catch (error: any) {
             console.log("inside catch");
             Alert.alert('Error', error.message || 'Something went wrong.');
         } finally {
-            console.log("inside finally");
             console.log(db);
             if (db) {
                 await closeDBConnection(db); // 🔑 close here
@@ -95,52 +87,59 @@ export default function RegistrationScreen() {
         }
     };
 
+    if (isRegistered === null) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" />
+            </View>
+        );
+    } else {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.title}>{isRegistered ? 'Device already registered' : 'Device Registration'}</Text>
 
-    console.log("RS.TSX isRegistered: ", isRegistered);
+                {
+                    isRegistered ?
+                        ""
+                        :
+                        (
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter token"
+                                value={token}
+                                onChangeText={setToken}
+                                autoCapitalize="none"
+                            />
+                        )
+                }
 
-    return (
-        <View style={styles.container}>
-            <Text style={styles.title}>{isRegistered ? 'Device already registered' : 'Device Registration'}</Text>
-
-            {
-                isRegistered ?
-                    ""
-                    :
-                    (
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Enter token"
-                            value={token}
-                            onChangeText={setToken}
-                            autoCapitalize="none"
-                        />
-                    )
-            }
-
-            {
-                isRegistered ?
-                    ""
-                    :
-                    (
-                        <Button
-                            title={loading ? 'Registering...' : 'Register Now'}
-                            onPress={handleRegisterDevice}
-                            disabled={loading}
-                        />
-                    )
-            }
+                {
+                    isRegistered ?
+                        ""
+                        :
+                        (
+                            <Button
+                                title={loading ? 'Registering...' : 'Register Now'}
+                                onPress={handleRegisterDevice}
+                                disabled={loading}
+                            />
+                        )
+                }
 
 
 
 
 
-            {deviceRegistered && (
-                <View style={{ marginTop: 20 }}>
-                    <Button title="Sync Data" onPress={syncData} />
-                </View>
-            )}
-        </View>
-    );
+                {deviceRegistered && (
+                    <View style={{ marginTop: 20 }}>
+                        <Button title="Sync Data" onPress={syncData} />
+                    </View>
+                )}
+            </View>
+        );
+    }
+
+
 }
 
 const styles = StyleSheet.create({

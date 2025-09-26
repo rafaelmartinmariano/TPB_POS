@@ -68,9 +68,9 @@ export const checkDateSync = async (): Promise<boolean> => {
 }
 
 export const useDeviceRegistration = () => {
-  const [isRegistered, setIsRegistered] = useState<boolean>(false);
+  const [isRegistered, setIsRegistered] = useState<boolean>(null);
 
-  checkDateSync();
+  //checkDateSync();
 
   useEffect(() => {
     const init = async () => {
@@ -106,7 +106,7 @@ export const useDeviceRegistration = () => {
         }
 
       } finally {
-        await closeDBConnection(db);
+        //await closeDBConnection(db);
       }
     };
 

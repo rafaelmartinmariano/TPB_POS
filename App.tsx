@@ -35,15 +35,14 @@ export default function App() {
 
   //check if the date is sync GMT+8
   useEffect(() => {
-    const check = async () => {
+    //check date sync
+    const dateSyncCheck = async () => {
       const dateSync = await checkDateSync();
       setIsDateSync(dateSync);
-      console.log("✅ Date Sync:", dateSync);
     };
-    check();
+    dateSyncCheck();
   }, []);
 
-  //check if device is registered
   const { isRegistered } = useDeviceRegistration();
 
   // Still checking → show loading spinner
@@ -57,27 +56,46 @@ export default function App() {
     );
   }
 
-  //console.log("isRegistered:", isRegistered);
-  //if (!isRegistered) return null;
+  if (isRegistered) {
+    return (
+      <SafeAreaProvider>
+        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Home">
+            <Stack.Screen name="Home"
+              component={AppContent}
+              options={{
+                headerTitle: () => <TopNav />, // render your component inline
+              }}
+            />
+            <Stack.Screen name="Registration" component={RegistrationScreen} options={{ title: 'Device Registration' }} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaProvider>
+    );
+  } else if (isRegistered === false) {
+    //show only the registration screen
+    return (
+      <SafeAreaProvider>
+        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Home">
+            <Stack.Screen name="Home" component={RegistrationScreen} options={{ title: 'Device Registration' }} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaProvider>
+    );
+  } else {
+    return (
+      <SafeAreaProvider>
+        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" />
+        </View>
+      </SafeAreaProvider>
+    );
+  }
 
-  return (
-
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName={isRegistered ? "Home" : "Registration"}>
-          <Stack.Screen name="Home"
-            component={AppContent}
-            options={{
-              headerTitle: () => <TopNav />, // render your component inline
-            }}
-          />
-          <Stack.Screen name="Registration" component={RegistrationScreen} options={{ title: 'Device Registration' }} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </SafeAreaProvider>
-
-  );
 }
 
 function AppContent() {
